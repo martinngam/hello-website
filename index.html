@@ -3,24 +3,490 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hello</title>
+  <title>Claude Code Training | Boston Industrial</title>
+  <meta name="description" content="Hands-on Claude Code training course by Boston Industrial. Available in English and Chinese.">
   <style>
+    :root {
+      --bg: #f6f5f2;
+      --surface: #ffffff;
+      --ink: #1c1f24;
+      --muted: #5b6270;
+      --line: #e2e0da;
+      --dark: #15181d;
+      --dark-2: #20252c;
+      --accent: #e0652b;
+      --accent-ink: #ffffff;
+      --radius: 14px;
+      --max: 1120px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
     body {
       margin: 0;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: system-ui, sans-serif;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      color: white;
+      font-family: system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.6;
     }
-    h1 {
-      font-size: 5rem;
+    a { color: inherit; }
+    .wrap { max-width: var(--max); margin: 0 auto; padding: 0 20px; }
+
+    /* Header */
+    header {
+      position: sticky; top: 0; z-index: 10;
+      background: rgba(21, 24, 29, 0.92);
+      backdrop-filter: blur(8px);
+      color: #fff;
+    }
+    .nav { display: flex; align-items: center; justify-content: space-between; height: 64px; gap: 16px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: 0.02em; text-decoration: none; }
+    .brand-mark {
+      width: 32px; height: 32px; border-radius: 8px; background: var(--accent);
+      display: grid; place-items: center; font-weight: 800; font-size: 14px;
+    }
+    .nav-links { display: flex; gap: 24px; font-size: 15px; }
+    .nav-links a { text-decoration: none; opacity: 0.8; }
+    .nav-links a:hover { opacity: 1; }
+    .lang {
+      display: flex; border: 1px solid rgba(255,255,255,0.25); border-radius: 999px; overflow: hidden;
+    }
+    .lang button {
+      background: none; border: 0; color: #fff; padding: 6px 14px; font: inherit; font-size: 14px; cursor: pointer;
+    }
+    .lang button[aria-pressed="true"] { background: var(--accent); }
+
+    /* Hero */
+    .hero { background: var(--dark); color: #fff; padding: 96px 0 88px; position: relative; overflow: hidden; }
+    .hero::after {
+      content: ""; position: absolute; inset: 0;
+      background-image: linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+      background-size: 40px 40px; pointer-events: none;
+    }
+    .hero .wrap { position: relative; z-index: 1; display: grid; grid-template-columns: 1.2fr 1fr; gap: 48px; align-items: center; }
+    .eyebrow { color: var(--accent); font-weight: 600; font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase; }
+    h1 { font-size: clamp(2.2rem, 5vw, 3.6rem); line-height: 1.1; margin: 12px 0 20px; }
+    .hero p.lead { font-size: 1.15rem; color: #c6cbd3; max-width: 34em; margin: 0 0 32px; }
+    .btns { display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn {
+      display: inline-block; padding: 14px 24px; border-radius: 10px; font-weight: 600; text-decoration: none;
+      border: 1px solid transparent;
+    }
+    .btn-primary { background: var(--accent); color: var(--accent-ink); }
+    .btn-primary:hover { filter: brightness(1.08); }
+    .btn-ghost { border-color: rgba(255,255,255,0.3); color: #fff; }
+    .btn-ghost:hover { border-color: #fff; }
+
+    .terminal {
+      background: #0d0f12; border: 1px solid #2c323b; border-radius: var(--radius);
+      font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: 14px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+    }
+    .terminal-bar { display: flex; gap: 6px; padding: 12px 14px; border-bottom: 1px solid #2c323b; }
+    .terminal-bar span { width: 11px; height: 11px; border-radius: 50%; background: #3a414b; }
+    .terminal pre { margin: 0; padding: 18px; white-space: pre-wrap; color: #d6dae0; }
+    .t-prompt { color: var(--accent); }
+    .t-dim { color: #7c8591; }
+    .t-ok { color: #6cc28a; }
+
+    /* Stats */
+    .stats { background: var(--dark-2); color: #fff; }
+    .stats .wrap { display: grid; grid-template-columns: repeat(4, 1fr); text-align: center; padding-top: 28px; padding-bottom: 28px; gap: 16px; }
+    .stat b { display: block; font-size: 1.8rem; color: var(--accent); }
+    .stat span { font-size: 14px; color: #b3b9c2; }
+
+    /* Sections */
+    section { padding: 88px 0; }
+    .section-head { max-width: 640px; margin-bottom: 48px; }
+    h2 { font-size: clamp(1.7rem, 3.5vw, 2.4rem); line-height: 1.2; margin: 8px 0 12px; }
+    .section-head p { color: var(--muted); margin: 0; font-size: 1.05rem; }
+
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .card {
+      background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 28px;
+    }
+    .card .icon {
+      width: 44px; height: 44px; border-radius: 10px; background: #fbe9e0; color: var(--accent);
+      display: grid; place-items: center; font-size: 22px; margin-bottom: 16px;
+    }
+    .card h3 { margin: 0 0 8px; font-size: 1.15rem; }
+    .card p { margin: 0; color: var(--muted); }
+
+    /* Curriculum */
+    .modules { display: grid; gap: 12px; }
+    .module {
+      display: grid; grid-template-columns: 72px 1fr; gap: 20px; align-items: start;
+      background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px;
+    }
+    .module-num { font-size: 1.6rem; font-weight: 800; color: var(--accent); font-family: ui-monospace, Consolas, monospace; }
+    .module h3 { margin: 0 0 6px; font-size: 1.1rem; }
+    .module p { margin: 0; color: var(--muted); }
+
+    /* Audience */
+    .alt { background: var(--surface); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .checklist { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 14px 32px; }
+    .checklist li { display: flex; gap: 12px; align-items: flex-start; }
+    .checklist li::before {
+      content: "✓"; flex: none; width: 24px; height: 24px; border-radius: 50%;
+      background: var(--accent); color: #fff; display: grid; place-items: center; font-size: 13px; font-weight: 700; margin-top: 2px;
+    }
+
+    /* Pricing / formats */
+    .plan { display: flex; flex-direction: column; }
+    .plan.featured { border: 2px solid var(--accent); position: relative; }
+    .badge {
+      position: absolute; top: -12px; left: 24px; background: var(--accent); color: #fff;
+      font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px;
+    }
+    .plan .meta { color: var(--accent); font-weight: 700; margin: 4px 0 14px; }
+    .plan ul { padding-left: 18px; margin: 0 0 24px; color: var(--muted); flex: 1; }
+    .plan .btn { text-align: center; }
+    .btn-outline { border-color: var(--ink); color: var(--ink); }
+    .btn-outline:hover { background: var(--ink); color: #fff; }
+
+    /* FAQ */
+    details {
+      background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+      padding: 18px 22px; margin-bottom: 12px;
+    }
+    summary { cursor: pointer; font-weight: 600; list-style: none; display: flex; justify-content: space-between; gap: 16px; }
+    summary::-webkit-details-marker { display: none; }
+    summary::after { content: "+"; color: var(--accent); font-size: 1.3rem; line-height: 1; }
+    details[open] summary::after { content: "–"; }
+    details p { color: var(--muted); margin: 12px 0 0; }
+
+    /* CTA */
+    .cta { background: var(--accent); color: #fff; text-align: center; }
+    .cta h2 { margin-top: 0; }
+    .cta p { opacity: 0.92; max-width: 36em; margin: 0 auto 28px; font-size: 1.1rem; }
+    .cta .btn { background: var(--dark); color: #fff; }
+
+    footer { background: var(--dark); color: #9aa1ab; padding: 32px 0; font-size: 14px; }
+    footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+    @media (max-width: 900px) {
+      .hero .wrap { grid-template-columns: 1fr; }
+      .grid-3 { grid-template-columns: 1fr; }
+      .stats .wrap { grid-template-columns: repeat(2, 1fr); }
+      .nav-links { display: none; }
+    }
+    @media (max-width: 600px) {
+      .wrap { padding: 0 16px; }
+      .hero { padding: 64px 0; }
+      section { padding: 64px 0; }
+      .checklist { grid-template-columns: 1fr; }
+      .module { grid-template-columns: 1fr; gap: 6px; }
+      .brand-name { display: none; }
     }
   </style>
 </head>
 <body>
-  <h1>Hello!</h1>
+
+<header>
+  <div class="wrap nav">
+    <a href="#top" class="brand">
+      <span class="brand-mark">BI</span>
+      <span class="brand-name">Boston Industrial</span>
+    </a>
+    <nav class="nav-links">
+      <a href="#why" data-i18n="nav_why">Why</a>
+      <a href="#curriculum" data-i18n="nav_curriculum">Curriculum</a>
+      <a href="#formats" data-i18n="nav_formats">Formats</a>
+      <a href="#faq" data-i18n="nav_faq">FAQ</a>
+    </nav>
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" data-lang="en" aria-pressed="true">EN</button>
+      <button type="button" data-lang="zh" aria-pressed="false">中文</button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+  <!-- Hero -->
+  <div class="hero">
+    <div class="wrap">
+      <div>
+        <div class="eyebrow" data-i18n="hero_eyebrow">Boston Industrial Training</div>
+        <h1 data-i18n="hero_title">Master Claude Code. Ship software faster.</h1>
+        <p class="lead" data-i18n="hero_lead">A hands-on course that teaches your team to plan, write, test and ship real code with Claude Code, the AI coding agent that works right in your terminal.</p>
+        <div class="btns">
+          <a href="#contact" class="btn btn-primary" data-i18n="hero_cta">Enroll now</a>
+          <a href="#curriculum" class="btn btn-ghost" data-i18n="hero_cta2">View curriculum</a>
+        </div>
+      </div>
+      <div class="terminal" aria-hidden="true">
+        <div class="terminal-bar"><span></span><span></span><span></span></div>
+<pre><span class="t-prompt">$</span> claude
+<span class="t-dim">&gt;</span> <span data-i18n="term_ask">Add a login page and write tests for it</span>
+
+<span class="t-dim">● <span data-i18n="term_1">Reading project structure…</span></span>
+<span class="t-dim">● <span data-i18n="term_2">Creating login page…</span></span>
+<span class="t-dim">● <span data-i18n="term_3">Writing tests…</span></span>
+<span class="t-ok">✓ <span data-i18n="term_4">All tests passed</span></span></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="wrap">
+      <div class="stat"><b>6</b><span data-i18n="stat_1">Modules</span></div>
+      <div class="stat"><b>2</b><span data-i18n="stat_2">Days hands-on</span></div>
+      <div class="stat"><b>EN / 中文</b><span data-i18n="stat_3">Bilingual instruction</span></div>
+      <div class="stat"><b>✓</b><span data-i18n="stat_4">Certificate of completion</span></div>
+    </div>
+  </div>
+
+  <!-- Why -->
+  <section id="why">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow" data-i18n="why_eyebrow">Why this course</div>
+        <h2 data-i18n="why_title">From curious to confident in two days</h2>
+        <p data-i18n="why_lead">Learn by doing on real projects, not slides. Every session ends with working code.</p>
+      </div>
+      <div class="grid-3">
+        <div class="card">
+          <div class="icon">⚡</div>
+          <h3 data-i18n="why_1_t">Work faster</h3>
+          <p data-i18n="why_1_d">Hand routine coding, debugging and refactoring to Claude Code so your engineers can focus on design and decisions.</p>
+        </div>
+        <div class="card">
+          <div class="icon">🛠</div>
+          <h3 data-i18n="why_2_t">Hands-on labs</h3>
+          <p data-i18n="why_2_d">Guided exercises on realistic codebases: build features, fix bugs, write tests and open pull requests.</p>
+        </div>
+        <div class="card">
+          <div class="icon">🔒</div>
+          <h3 data-i18n="why_3_t">Safe &amp; team-ready</h3>
+          <p data-i18n="why_3_d">Set up permissions, review workflows and shared team settings so AI-assisted work fits your standards.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Curriculum -->
+  <section id="curriculum" class="alt">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow" data-i18n="cur_eyebrow">Curriculum</div>
+        <h2 data-i18n="cur_title">What you'll learn</h2>
+        <p data-i18n="cur_lead">Six modules that build on each other, from first install to team-wide workflows.</p>
+      </div>
+      <div class="modules">
+        <div class="module">
+          <div class="module-num">01</div>
+          <div><h3 data-i18n="m1_t">Getting started</h3><p data-i18n="m1_d">Install Claude Code, connect it to your projects, and learn how to give clear instructions.</p></div>
+        </div>
+        <div class="module">
+          <div class="module-num">02</div>
+          <div><h3 data-i18n="m2_t">Understanding a codebase</h3><p data-i18n="m2_d">Explore unfamiliar code, ask questions about it, and get up to speed on new projects quickly.</p></div>
+        </div>
+        <div class="module">
+          <div class="module-num">03</div>
+          <div><h3 data-i18n="m3_t">Building &amp; fixing</h3><p data-i18n="m3_d">Plan features, write and edit code, debug failures, and refactor safely with tests.</p></div>
+        </div>
+        <div class="module">
+          <div class="module-num">04</div>
+          <div><h3 data-i18n="m4_t">Git &amp; GitHub workflows</h3><p data-i18n="m4_d">Commit, branch, open pull requests and review changes, with Claude Code doing the heavy lifting.</p></div>
+        </div>
+        <div class="module">
+          <div class="module-num">05</div>
+          <div><h3 data-i18n="m5_t">Customizing Claude Code</h3><p data-i18n="m5_d">Project instructions (CLAUDE.md), permissions, hooks, skills and MCP connections to your tools.</p></div>
+        </div>
+        <div class="module">
+          <div class="module-num">06</div>
+          <div><h3 data-i18n="m6_t">Rolling out to your team</h3><p data-i18n="m6_d">Best practices, security, shared settings and measuring the impact on your engineering work.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Audience -->
+  <section>
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow" data-i18n="aud_eyebrow">Who it's for</div>
+        <h2 data-i18n="aud_title">Built for working teams</h2>
+      </div>
+      <ul class="checklist">
+        <li data-i18n="aud_1">Software engineers who want to code faster</li>
+        <li data-i18n="aud_2">Engineering leads planning an AI rollout</li>
+        <li data-i18n="aud_3">Automation and controls engineers who write scripts</li>
+        <li data-i18n="aud_4">Data and IT teams maintaining internal tools</li>
+        <li data-i18n="aud_5">Technical managers who want to understand the workflow</li>
+        <li data-i18n="aud_6">Anyone comfortable with basic command-line use</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Formats -->
+  <section id="formats" class="alt">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow" data-i18n="fmt_eyebrow">Course formats</div>
+        <h2 data-i18n="fmt_title">Choose how you learn</h2>
+        <p data-i18n="fmt_lead">Every format is available in English or Chinese.</p>
+      </div>
+      <div class="grid-3">
+        <div class="card plan">
+          <h3 data-i18n="p1_t">Online live</h3>
+          <div class="meta" data-i18n="p1_m">2 days · virtual classroom</div>
+          <ul>
+            <li data-i18n="p1_1">Live instructor sessions</li>
+            <li data-i18n="p1_2">Hands-on labs</li>
+            <li data-i18n="p1_3">Session recordings</li>
+          </ul>
+          <a href="#contact" class="btn btn-outline" data-i18n="p_cta">Enquire</a>
+        </div>
+        <div class="card plan featured">
+          <span class="badge" data-i18n="p2_badge">Most popular</span>
+          <h3 data-i18n="p2_t">In-person workshop</h3>
+          <div class="meta" data-i18n="p2_m">2 days · on-site</div>
+          <ul>
+            <li data-i18n="p2_1">Everything in Online live</li>
+            <li data-i18n="p2_2">Small-group coaching</li>
+            <li data-i18n="p2_3">Certificate of completion</li>
+          </ul>
+          <a href="#contact" class="btn btn-primary" data-i18n="p_cta">Enquire</a>
+        </div>
+        <div class="card plan">
+          <h3 data-i18n="p3_t">Private team training</h3>
+          <div class="meta" data-i18n="p3_m">Custom · at your company</div>
+          <ul>
+            <li data-i18n="p3_1">Tailored to your codebase</li>
+            <li data-i18n="p3_2">Flexible schedule</li>
+            <li data-i18n="p3_3">Follow-up support</li>
+          </ul>
+          <a href="#contact" class="btn btn-outline" data-i18n="p_cta">Enquire</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow" data-i18n="faq_eyebrow">FAQ</div>
+        <h2 data-i18n="faq_title">Common questions</h2>
+      </div>
+      <details>
+        <summary data-i18n="q1">Do I need to be an expert programmer?</summary>
+        <p data-i18n="a1">No. You should be comfortable with basic programming and the command line. We'll cover the rest.</p>
+      </details>
+      <details>
+        <summary data-i18n="q2">What do I need to bring?</summary>
+        <p data-i18n="a2">A laptop with internet access. We'll help you set up Claude Code and an account at the start of the course.</p>
+      </details>
+      <details>
+        <summary data-i18n="q3">Is the course taught in Chinese?</summary>
+        <p data-i18n="a3">Yes. Every session is available in English or Chinese, and course materials are provided in both languages.</p>
+      </details>
+      <details>
+        <summary data-i18n="q4">Can you train our whole team?</summary>
+        <p data-i18n="a4">Yes. Private team training can be tailored to your codebase, tools and schedule. Contact us for details.</p>
+      </details>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section id="contact" class="cta">
+    <div class="wrap">
+      <h2 data-i18n="cta_title">Ready to get started?</h2>
+      <p data-i18n="cta_lead">Contact Boston Industrial to reserve a seat or plan training for your team.</p>
+      <!-- TODO: replace with the real contact email -->
+      <a href="mailto:training@example.com" class="btn" data-i18n="cta_btn">Contact us</a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© <span id="year"></span> Boston Industrial</span>
+    <span data-i18n="footer_note">Claude Code is a product of Anthropic. This course is offered independently by Boston Industrial.</span>
+  </div>
+</footer>
+
+<script>
+  const zh = {
+    nav_why: "课程优势", nav_curriculum: "课程大纲", nav_formats: "上课形式", nav_faq: "常见问题",
+    hero_eyebrow: "Boston Industrial 培训",
+    hero_title: "精通 Claude Code，更快交付软件。",
+    hero_lead: "一门实战课程，教您的团队使用 Claude Code（在终端中直接工作的 AI 编程助手）来规划、编写、测试和交付真实代码。",
+    hero_cta: "立即报名", hero_cta2: "查看课程大纲",
+    term_ask: "添加一个登录页面并为它编写测试",
+    term_1: "正在读取项目结构…", term_2: "正在创建登录页面…", term_3: "正在编写测试…", term_4: "所有测试通过",
+    stat_1: "个模块", stat_2: "天实战", stat_3: "中英双语授课", stat_4: "结业证书",
+    why_eyebrow: "为什么选择本课程",
+    why_title: "两天时间，从入门到熟练",
+    why_lead: "在真实项目中边做边学，而不是看幻灯片。每节课都以可运行的代码结束。",
+    why_1_t: "提高效率", why_1_d: "把日常编码、调试和重构交给 Claude Code，让工程师专注于设计和决策。",
+    why_2_t: "实战练习", why_2_d: "在真实代码库上进行指导练习：开发功能、修复缺陷、编写测试并提交拉取请求。",
+    why_3_t: "安全可靠，适合团队", why_3_d: "配置权限、审查流程和团队共享设置，让 AI 辅助工作符合您的标准。",
+    cur_eyebrow: "课程大纲", cur_title: "您将学到什么",
+    cur_lead: "六个循序渐进的模块，从首次安装到团队级工作流程。",
+    m1_t: "快速入门", m1_d: "安装 Claude Code，将其连接到您的项目，并学习如何给出清晰的指令。",
+    m2_t: "理解代码库", m2_d: "探索陌生代码、就代码提问，并快速熟悉新项目。",
+    m3_t: "开发与修复", m3_d: "规划功能、编写和修改代码、调试故障，并借助测试安全地重构。",
+    m4_t: "Git 与 GitHub 工作流程", m4_d: "提交、分支、创建拉取请求并审查更改，由 Claude Code 完成繁重工作。",
+    m5_t: "定制 Claude Code", m5_d: "项目说明（CLAUDE.md）、权限、钩子（hooks）、技能（skills）以及通过 MCP 连接您的工具。",
+    m6_t: "在团队中推广", m6_d: "最佳实践、安全性、共享设置，以及衡量对工程工作的影响。",
+    aud_eyebrow: "适合人群", aud_title: "为一线团队打造",
+    aud_1: "希望更快编写代码的软件工程师",
+    aud_2: "正在规划 AI 落地的技术负责人",
+    aud_3: "需要编写脚本的自动化与控制工程师",
+    aud_4: "维护内部工具的数据和 IT 团队",
+    aud_5: "希望了解工作流程的技术管理者",
+    aud_6: "熟悉基本命令行操作的任何人",
+    fmt_eyebrow: "上课形式", fmt_title: "选择适合您的学习方式",
+    fmt_lead: "所有形式均提供英文或中文授课。",
+    p1_t: "线上直播", p1_m: "2 天 · 线上课堂",
+    p1_1: "讲师现场授课", p1_2: "实战练习", p1_3: "课程录像",
+    p2_badge: "最受欢迎", p2_t: "线下工作坊", p2_m: "2 天 · 现场授课",
+    p2_1: "包含线上直播的全部内容", p2_2: "小组辅导", p2_3: "结业证书",
+    p3_t: "企业内训", p3_m: "定制 · 在贵公司进行",
+    p3_1: "根据您的代码库定制", p3_2: "时间灵活", p3_3: "课后支持",
+    p_cta: "咨询",
+    faq_eyebrow: "常见问题", faq_title: "常见问题解答",
+    q1: "我需要是编程专家吗？", a1: "不需要。您只需熟悉基础编程和命令行，其余内容我们都会讲解。",
+    q2: "我需要带什么？", a2: "一台可以上网的笔记本电脑。课程开始时我们会帮助您安装 Claude Code 并设置账户。",
+    q3: "课程有中文授课吗？", a3: "有。每节课都可以选择英文或中文授课，课程资料也提供中英两种版本。",
+    q4: "可以为我们整个团队培训吗？", a4: "可以。企业内训可以根据您的代码库、工具和时间安排进行定制。详情请联系我们。",
+    cta_title: "准备好开始了吗？",
+    cta_lead: "联系 Boston Industrial 预留名额，或为您的团队安排培训。",
+    cta_btn: "联系我们",
+    footer_note: "Claude Code 是 Anthropic 的产品。本课程由 Boston Industrial 独立提供。"
+  };
+
+  // Remember the original English text so we can switch back.
+  const nodes = document.querySelectorAll("[data-i18n]");
+  const en = {};
+  nodes.forEach(n => { en[n.dataset.i18n] = n.textContent; });
+
+  function setLang(lang) {
+    const dict = lang === "zh" ? zh : en;
+    nodes.forEach(n => {
+      const text = dict[n.dataset.i18n];
+      if (text) n.textContent = text;
+    });
+    document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
+    document.querySelectorAll(".lang button").forEach(b => {
+      b.setAttribute("aria-pressed", String(b.dataset.lang === lang));
+    });
+    try { localStorage.setItem("lang", lang); } catch (e) {}
+  }
+
+  document.querySelectorAll(".lang button").forEach(b => {
+    b.addEventListener("click", () => setLang(b.dataset.lang));
+  });
+
+  let initial = "en";
+  try { initial = localStorage.getItem("lang") || ""; } catch (e) {}
+  if (!initial) initial = (navigator.language || "").toLowerCase().startsWith("zh") ? "zh" : "en";
+  setLang(initial);
+
+  document.getElementById("year").textContent = new Date().getFullYear();
+</script>
 </body>
 </html>
